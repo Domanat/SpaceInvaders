@@ -6,15 +6,16 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+
 abstract class Object 
 {
-	private int x;
-	private int y;
+	private double x;
+	private double y;
 	public BufferedImage image;
 	private int WIDTH;
 	private int HEIGHT;
 	
-	public Object(int x, int y, int width, int height)
+	public Object(double x, double y, int width, int height)
 	{
 		this.x = x;
 		this.y = y;
@@ -33,12 +34,12 @@ abstract class Object
 	{
 		return image;
 	}
-	public int getX()
+	public double getX()
 	{
 		return x;
 	}
 	
-	public int getY()
+	public double getY()
 	{
 		return y;
 	}
@@ -53,23 +54,24 @@ abstract class Object
 		return WIDTH;
 	}
 	
-	public void setX(int x)
+	public void setX(double x)
 	{
 		this.x = x;
 	}
 	
-	public void addToX(int x)
+	public void addToX(double x)
 	{
 		this.x += x;
 	}
 	
-	public void setY(int y)
+	public void setY(double y)
 	{
 		this.y = y;
 	}
 	
-	public void addToY(int y)
+	public void addToY(double y)
 	{
 		this.y += y;
 	}
+	
 }

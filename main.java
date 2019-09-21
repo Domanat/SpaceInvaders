@@ -19,7 +19,7 @@ public class App extends JPanel implements Runnable
 	private final int RECT_WIDTH = 50;
 	private final int ALIEN_H = 20;
 	private final int ALIEN_W = 40;
-	public double ALIEN_SPEED = 0.5;
+	
 	
 	public  int RECT_X = 250;
 	public  int RECT_Y = 500;
@@ -27,15 +27,17 @@ public class App extends JPanel implements Runnable
 	public Vector<Shot> shots;
 	public Player player;
 	public Vector<Alien> aliens;
+	
 	public boolean ingame = true;
 	public boolean isDefeated = false;
 	public Thread animator;
 	public JButton levels[];
 	
-    public App() {
-    	
-    	initApp();
+    public App() 
+    {
     	gameInit();
+    	initApp();
+    	
     }
     
     public void initApp()
@@ -83,7 +85,7 @@ public class App extends JPanel implements Runnable
     		drawPlayer(g);
     		drawAliens(g);
     		drawShot(g);
-    		g.drawImage(player.getImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), this);
+    		g.drawImage(player.getImage(), (int)player.getX(), (int)player.getY(), player.getWidth(), player.getHeight(), this);
     	}
     }
     
@@ -101,7 +103,7 @@ public class App extends JPanel implements Runnable
 		{
     		for(int j = 0; j < 4; j++)
     		{
-    			aliens.add(new Alien(x, y));
+    			aliens.add(new Alien(x, y, ALIEN_W, ALIEN_H));
     			x += 50;
     		}
     		x = 190;
@@ -114,33 +116,33 @@ public class App extends JPanel implements Runnable
     	int x = 100, y = 50;
     	for(int i = 0; i < 7; i++)
     	{
-    		aliens.add(new Alien(x, y));
+    		aliens.add(new Alien(x, y, ALIEN_W, ALIEN_H));
     		x += 50;
     	}
     	//left side
     	x = 130;
     	y += 30;
-    	aliens.add(new Alien(x, y));
+    	aliens.add(new Alien(x, y, ALIEN_W, ALIEN_H));
     	
     	x = 160;
     	y += 30;
-    	aliens.add(new Alien(x, y));
+    	aliens.add(new Alien(x, y, ALIEN_W, ALIEN_H));
     	
     	
     	//right side
     	x = 370;
     	y = 80;
-    	aliens.add(new Alien(x, y));
+    	aliens.add(new Alien(x, y, ALIEN_W, ALIEN_H));
     	
     	x = 340;
     	y += 30;
-    	aliens.add(new Alien(x, y));
+    	aliens.add(new Alien(x, y, ALIEN_W, ALIEN_H));
     	
     	x = 200;
     	y += 30;
     	for(int i = 0; i < 3; i++)
     	{
-    		aliens.add(new Alien(x, y));
+    		aliens.add(new Alien(x, y, ALIEN_W, ALIEN_H));
     		x += 50;
     	}
     }
@@ -151,7 +153,7 @@ public class App extends JPanel implements Runnable
     	{
     		for(int i = 0; i < shots.size(); i++)
     		{
-    			g.drawRect(shots.elementAt(i).x + 15, shots.elementAt(i).y, 6, 10);
+    			g.drawRect((int)shots.elementAt(i).x + 15, (int)shots.elementAt(i).y, 6, 10);
     		}
     	}
     }
@@ -160,14 +162,14 @@ public class App extends JPanel implements Runnable
     {
     	for(int i = 0; i < aliens.size(); i++)
     	{
-    		g.drawRect((int)aliens.elementAt(i).x, (int)aliens.elementAt(i).y, ALIEN_W, ALIEN_H);
+    		g.drawRect((int)aliens.elementAt(i).getX(), (int)aliens.elementAt(i).getY(), ALIEN_W, ALIEN_H);
     	}
 		
     }
     
     public void drawPlayer(Graphics g)
     {
-    	g.drawRect(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+    	g.drawRect((int)player.getX(), (int)player.getY(), player.getWidth(), player.getHeight());
     }
     
     public void defeat()
@@ -197,8 +199,8 @@ public class App extends JPanel implements Runnable
     				break;
     			
     			//shots.elementAt(i).y >= aliens.elementAt(j).y mistake somewhere here
-    			if(shots.elementAt(i).x < aliens.elementAt(j).x + ALIEN_W/2 && shots.elementAt(i).x > aliens.elementAt(j).x - ALIEN_W/2
-    					&& shots.elementAt(i).y >= aliens.elementAt(j).y && shots.elementAt(i).y <= aliens.elementAt(j).y + ALIEN_H)
+    			if(shots.elementAt(i).x < aliens.elementAt(j).getX() + ALIEN_W/2 && shots.elementAt(i).x > aliens.elementAt(j).getX() - ALIEN_W/2
+    					&& shots.elementAt(i).y >= aliens.elementAt(j).getY() && shots.elementAt(i).y <= aliens.elementAt(j).getY() + ALIEN_H)
     			{
     				shots.remove(i);
     				aliens.remove(j);
@@ -227,12 +229,12 @@ public class App extends JPanel implements Runnable
     		
     		for(int j = 0; j < aliens.size(); j++)
     		{
-    			if(aliens.elementAt(j).y >= player.getY() - 2*RECT_HEIGHT)
+    			if(aliens.elementAt(j).getY() >= player.getY() - 2*RECT_HEIGHT)
     			{
     				isDefeated = true;
     				break;
     			}
-    			aliens.elementAt(j).y += ALIEN_SPEED;
+    			aliens.elementAt(j).addToY(aliens.elementAt(j).getSpeed()); //+= ALIEN_SPEED;
     			collide();
     		}
     		
@@ -308,47 +310,42 @@ public class App extends JPanel implements Runnable
 
 //TODO: with abstract class contains(coords, state, image)
 
-class Alien
+class Alien extends Object
 {
 	//change all members to private
-	public double x;
-	public double y;
-	public boolean isVisible = true;
+	private double ALIEN_SPEED = 0.5;
 	
-	Alien(double x, double y)
+	Alien(int x ,int y, int w, int h)
 	{
-		this.x = x;
-		this.y = y;
+		super(x, y, w, h);
 	}
 	
-	//TODO: getters and setters
+	public double getSpeed()
+	{
+		return ALIEN_SPEED;
+	}
 }
 
-class Shot  
+class Shot 
 {
 	//change all members to private
 	public static int S_WIDTH = 6;
 	public static int S_HEIGHT = 10;
-	public boolean isVisible = true;
-	public int x;
-	public int y;
-	public Shot()
-	{
-		
-	}
+	public double x;
+	public double y;
 	
-	public Shot(int x, int y)
+	public Shot(double x, double y)
 	{
 		this.x = x + S_WIDTH;
 		this.y = y - S_HEIGHT;
 	}
 	
-	public int getX()
+	public double getX()
 	{
 		return x;
 	}
 	
-	public int getY()
+	public double getY()
 	{
 		return y;
 	}
