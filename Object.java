@@ -11,7 +11,6 @@ abstract class Object
 {
 	private double x;
 	private double y;
-	public BufferedImage image;
 	private int WIDTH;
 	private int HEIGHT;
 	
@@ -21,19 +20,9 @@ abstract class Object
 		this.y = y;
 		this.HEIGHT = height;
 		this.WIDTH = width;
-		try 
-		{
-			image = ImageIO.read(new File("C:\\Users\\maxim\\Desktop\\image.jpg"));
-		}catch(IOException ex)
-		{
-			
-		}
+		
 	}
 	
-	public BufferedImage getImage()
-	{
-		return image;
-	}
 	public double getX()
 	{
 		return x;

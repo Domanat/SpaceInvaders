@@ -1,8 +1,12 @@
 package VKBot.Bot;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Random;
 import java.util.Vector;
 
@@ -30,8 +34,10 @@ public class App extends JPanel implements Runnable
 	
 	public boolean ingame = true;
 	public boolean isDefeated = false;
+	public boolean isWin = false;
 	public Thread animator;
-	public JButton levels[];
+	BufferedImage image;
+	BufferedImage bgImage;
 	
     public App() 
     {
@@ -43,6 +49,13 @@ public class App extends JPanel implements Runnable
     public void initApp()
     {
     	frame = new JFrame("Space Invaders");
+    	try
+    	{
+    		bgImage = ImageIO.read(new File("C:\\Users\\maxim\\Desktop\\bgImage.jpg"));
+    	}catch(IOException e)
+    	{
+    		System.out.println("Can't download background image");
+    	}
         frame.setSize(600, 600);
         frame.setTitle("Points");
         frame.addKeyListener(new MyKeyAdapter());
@@ -82,12 +95,97 @@ public class App extends JPanel implements Runnable
     	
     	if(ingame)
     	{
+    		g.drawImage(bgImage, 0, 0, 600, 600, this);
+
     		drawPlayer(g);
+    		
     		drawAliens(g);
     		drawShot(g);
-    		g.drawImage(player.getImage(), (int)player.getX(), (int)player.getY(), player.getWidth(), player.getHeight(), this);
+    		//g.drawImage(player.getImage(), (int)player.getX(), (int)player.getY(), player.getWidth(), player.getHeight(), this);
+    	}
+    	else if(isDefeated)
+    	{
+    		defeat();
+    		
+    		//draw loser screen or image 
+    		try 
+    		{
+    			 image = ImageIO.read(new File("C:\\Users\\maxim\\Desktop\\loser.jpg"));
+    			g.drawImage(image, 0, 0, 600, 600, this);
+    		}catch(IOException ex)
+    		{
+    			
+    		}
+    	}
+    	else if(isWin)
+    	{
+    		victory();
+    		
+    		try
+    		{
+    			image = ImageIO.read(new File("C:\\Users\\maxim\\Desktop\\winner.jpg")); 
+    			g.drawImage(image, 0, 0, 600, 600, this);
+    		}catch(IOException ex)
+    		{
+    			
+    		}
     	}
     }
+    
+    public void run()
+    {
+    	long beforeTime, timeDiff, sleep;
+    	
+    	beforeTime = System.currentTimeMillis();
+    	
+    	while(ingame)
+    	{
+    		
+    		repaint();
+    		//animation();
+    		
+    		for(int i = 0; i < shots.size(); i++)
+    			shots.elementAt(i).addToY(-10);
+    		
+    		
+    		for(int j = 0; j < aliens.size(); j++)
+    		{
+    			if(aliens.elementAt(j).getY() >= player.getY() - 2*RECT_HEIGHT)
+    			{
+    				isDefeated = true;
+    				ingame = false;
+    				break;
+    			}
+    			aliens.elementAt(j).addToY(aliens.elementAt(j).getSpeed()); //+= ALIEN_SPEED;
+    			collide();
+    		}
+    		
+    		if(aliens.size() == 0)
+    		{
+    			ingame = false;
+    			isWin = true;
+    		}
+
+    		timeDiff = System.currentTimeMillis() - beforeTime;
+    		sleep = DELAY - timeDiff;
+    		
+    		if(sleep < 0)
+    		{
+    			sleep = 4;
+    		}
+    		
+    		try
+    		{
+    			Thread.sleep(sleep);
+    		}catch(InterruptedException e)
+    		{
+    			System.out.println("Interrupted");
+    		}
+    		
+    		beforeTime = System.currentTimeMillis();
+    	}
+    }
+    
     
     public void fillAliens()
     {
@@ -149,27 +247,30 @@ public class App extends JPanel implements Runnable
     
     public void drawShot(Graphics g)
     {
+    	g.setColor(Color.ORANGE);
     	if(ingame)
     	{
     		for(int i = 0; i < shots.size(); i++)
     		{
-    			g.drawRect((int)shots.elementAt(i).x + 15, (int)shots.elementAt(i).y, 6, 10);
+    			g.fillRect((int)shots.elementAt(i).getX()+ 15, (int)shots.elementAt(i).getY(), 6, 10);
     		}
     	}
     }
     
     public void drawAliens(Graphics g)
     {
+    	g.setColor(Color.GREEN);
     	for(int i = 0; i < aliens.size(); i++)
     	{
-    		g.drawRect((int)aliens.elementAt(i).getX(), (int)aliens.elementAt(i).getY(), ALIEN_W, ALIEN_H);
+    		g.fillRect((int)aliens.elementAt(i).getX(), (int)aliens.elementAt(i).getY(), ALIEN_W, ALIEN_H);
     	}
 		
     }
     
     public void drawPlayer(Graphics g)
     {
-    	g.drawRect((int)player.getX(), (int)player.getY(), player.getWidth(), player.getHeight());
+    	g.setColor(Color.WHITE);
+    	g.fillRect((int)player.getX(), (int)player.getY(), player.getWidth(), player.getHeight());
     }
     
     public void defeat()
@@ -188,7 +289,7 @@ public class App extends JPanel implements Runnable
     	for(int i = 0; i < shots.size(); i++)
     	{
     		
-    		if(shots.elementAt(i).y < 0)
+    		if(shots.elementAt(i).getY() < 0)
     		{
     			shots.remove(i);
     		}
@@ -199,8 +300,8 @@ public class App extends JPanel implements Runnable
     				break;
     			
     			//shots.elementAt(i).y >= aliens.elementAt(j).y mistake somewhere here
-    			if(shots.elementAt(i).x < aliens.elementAt(j).getX() + ALIEN_W/2 && shots.elementAt(i).x > aliens.elementAt(j).getX() - ALIEN_W/2
-    					&& shots.elementAt(i).y >= aliens.elementAt(j).getY() && shots.elementAt(i).y <= aliens.elementAt(j).getY() + ALIEN_H)
+    			if(shots.elementAt(i).getX() < aliens.elementAt(j).getX() + ALIEN_W/2 && shots.elementAt(i).getX() > aliens.elementAt(j).getX() - ALIEN_W/2
+    					&& shots.elementAt(i).getY() >= aliens.elementAt(j).getY() && shots.elementAt(i).getY() <= aliens.elementAt(j).getY() + ALIEN_H)
     			{
     				shots.remove(i);
     				aliens.remove(j);
@@ -211,65 +312,7 @@ public class App extends JPanel implements Runnable
     }
     
     
-    public void run()
-    {
-    	long beforeTime, timeDiff, sleep;
-    	
-    	beforeTime = System.currentTimeMillis();
-    	
-    	while(ingame)
-    	{
-    		
-    		repaint();
-    		//animation();
-    		
-    		for(int i = 0; i < shots.size(); i++)
-    			shots.elementAt(i).y -= 10;
-    		
-    		
-    		for(int j = 0; j < aliens.size(); j++)
-    		{
-    			if(aliens.elementAt(j).getY() >= player.getY() - 2*RECT_HEIGHT)
-    			{
-    				isDefeated = true;
-    				break;
-    			}
-    			aliens.elementAt(j).addToY(aliens.elementAt(j).getSpeed()); //+= ALIEN_SPEED;
-    			collide();
-    		}
-    		
-    		if(aliens.size() == 0)
-    		{
-    			ingame = false;
-    			victory();
-    		}
-
-    		if(isDefeated)
-    		{
-    			ingame = false;
-    			defeat();		
-    		}
-    		
-    		timeDiff = System.currentTimeMillis() - beforeTime;
-    		sleep = DELAY - timeDiff;
-    		
-    		if(sleep < 0)
-    		{
-    			sleep = 4;
-    		}
-    		
-    		try
-    		{
-    			Thread.sleep(sleep);
-    		}catch(InterruptedException e)
-    		{
-    			System.out.println("Interrupted");
-    		}
-    		
-    		beforeTime = System.currentTimeMillis();
-    	}
-    }
-    
+   
     
 
     public static void main(String[] args) {
@@ -329,10 +372,10 @@ class Alien extends Object
 class Shot 
 {
 	//change all members to private
-	public static int S_WIDTH = 6;
-	public static int S_HEIGHT = 10;
-	public double x;
-	public double y;
+	private static int S_WIDTH = 6;
+	private static int S_HEIGHT = 10;
+	private double x;
+	private double y;
 	
 	public Shot(double x, double y)
 	{
@@ -349,11 +392,16 @@ class Shot
 	{
 		return y;
 	}
+	
+	public void addToY(double y)
+	{
+		this.y += y;
+	}
 }
 
 class Player extends Object
 {
-	Player(int x, int y, int w, int h)
+	Player(int x, int y, int w, int h) 
 	{
 		super(x, y, w, h);
 	}
